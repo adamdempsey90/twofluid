@@ -1,0 +1,27 @@
+# This is a comment
+# Options File for planet disk code
+# Comment all but 1 option for each block 
+
+
+
++IMPLICIT
+#+SPLIT
+#+OPENMP
+
+#+INFINITE
+
++SELFGRAV
++GAUSSIAN
+
++INDIRECT
+
+#+SELFGRAV2D
+
+#+COMPANION
+#+WAVEKILLBC
++KILLIN
++KILLOUT
+#+OUTRHS
+
+#+RESTART
+#+VERBOSE
