@@ -2,7 +2,7 @@
 
 void user_ic(Mode *fld);
 void calc_cmax(Mode *fld);
-void set_dust_params(int i, double hor, double c2, double omk);
+void set_dust_params(int i);
 int init_fld(Mode *fld) {
 	int i,n;
 	double dr = Params->dr;
@@ -29,7 +29,7 @@ int init_fld(Mode *fld) {
 		fld[0].r[i] = r;
 
 
-		Params->hor[i] = (Params->h)*pow(r,Params->indfl);
+		bfld[0].hor[i] = (Params->h)*pow(r,Params->indfl);
 
 		
 		bfld[0].sig[i] = (Params->sig0)*pow(r,Params->indsig);
@@ -38,22 +38,22 @@ int init_fld(Mode *fld) {
 		bfld[1].dlomk[i] = (Params->q);
 		
 		
-		Params->c2[i] = (Params->hor[i])*
-							(Params->hor[i])*r*r*(bfld[1].omk[i])*(bfld[1].omk[i]);
+		bfld[0].c2[i] = (bfld[0].hor[i])*
+							(bfld[0].hor[i])*r*r*(bfld[1].omk[i])*(bfld[1].omk[i]);
 		
-		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])
+		bfld[0].nus[i] = (Params->alpha_s)*(bfld[0].hor[i])*(bfld[0].hor[i])
 							*(bfld[1].omk[i])*r*r;
-		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])
+		bfld[0].nub[i] = (Params->alpha_b)*(bfld[0].hor[i])*(bfld[0].hor[i])
 							*(bfld[1].omk[i])*r*r;
 		
 		bfld[0].omk[i] = (bfld[1].omk[i])
-							*sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
+							*sqrt( 1 + (bfld[0].hor[i])*(bfld[0].hor[i])*(Params->indsig));
 		
  		bfld[0].dlomk[i] = bfld[1].dlomk[1] + 
  				(1-pow(bfld[1].omk[i]/bfld[0].omk[i],2))*(Params->indfl);
 		
 		
-		set_dust_params(i,Params->hor[i],Params->c2[i],bfld[1].omk[i]);
+		set_dust_params(i);
 		
 		fld[1].r[i] = fld[0].r[i];
 		fld[1].lr[i] = fld[0].lr[i];
@@ -130,8 +130,8 @@ void user_ic(Mode *fld) {
 //		E0 = 0;
 
 //		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
-		fld[0].u[i] = I*(bfld->v[i])*E0;
-		fld[0].v[i] = .5*(bfld->v[i])*E0;	
+		fld[0].u[i] = I*(bfld[0].v[i])*E0;
+		fld[0].v[i] = .5*(bfld[0].v[i])*E0;	
 //		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
 //					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
 //		fld->sig[i] = .001*sin(M_PI * ( r - ri)/(ro-ri));
@@ -161,34 +161,36 @@ void user_ic(Mode *fld) {
 
 
 void calc_cmax(Mode *fld) {
-	int i;
+	int i,n;
 
 	Params->cmax=0;
 	
 	for(i=istart;i<iend;i++) {
-		if (sqrt(Params->c2[i]) > Params->cmax) {
-			Params->cmax = sqrt(Params->c2[i]);
-			Params->rcmax = fld[0].r[i];
-		}
-		if (sqrt(Params->dc2[i]) > Params->cmax) {
-			Params->cmax = sqrt(Params->dc2[i]);
-			Params->rcmax = fld[1].r[i];
+		for(n=0;n<NFLUID;n++) {
+			if (sqrt(bfld[n].c2[i]) > Params->cmax) {
+				Params->cmax = sqrt(bfld[n].c2[i]);
+				Params->rcmax = fld[n].r[i];
+			}
 		}
 	}
 	return;
 }
 
-void set_dust_params(int i, double hor, double c2, double omk) {
+void set_dust_params(int i) {
+	double hor = bfld[0].hor[i];
+	double c2 = bfld[0].c2[i];
+	
 	double eta = fabs(.5*hor*hor*(Params->indsig));
 	double a = Params->dalpha;
 
-	Params->tstop[i] = .013*(Params->dust_to_gas)/eta;
-	Params->dnu[i] = a * (1 + tstop + 4*tstop*tstop) * pow(1 + tstop*tstop,-2);
-	Params->dc2[i] = a*c2*(1+2*tstop + 1.25*tstop*tstop) * pow(1 + tstop*tstop,-2);
-
-	Params->dhor[i] = hor * sqrt( a / tstop);
+	double tstop = .013*(Params->dust_to_gas)/eta;
 	
-	Params->tstop[i] /= omk;
+	bfld[1].nus[i] = a * (1 + tstop + 4*tstop*tstop) * pow(1 + tstop*tstop,-2);
+	bfld[1].c2[i] = a*c2*(1+2*tstop + 1.25*tstop*tstop) * pow(1 + tstop*tstop,-2);
+
+	bfld[1].hor[i] = hor * sqrt( a / tstop);
+	
+	bfld[1].nub[i] = tstop / bfld[1].omk[i];
 
 	return;
 }

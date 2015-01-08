@@ -20,6 +20,7 @@ def create_defines_file():
 			g.write('#define NEQNS 4\n')
 		else:
 			g.write('#define NEQNS 3\n')
+		g.write('#define NFLUID 2\n')
 	
 				
 	return defs			

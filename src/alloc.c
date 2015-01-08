@@ -49,15 +49,15 @@ void alloc_fld(Mode *fld) {
 		fld[i].gp_sg = (double complex *)malloc(sizeof(double complex)*NR);
 		MCHECK(fld[i].gr_sg,"gp_sg");
 	
-		fld[i].sg_kernel = (double *)malloc(sizeof(double)*NR);
-		MCHECK(fld[i].sg_kernel,"sg_kernel");
+		fld[i].kernel = (double *)malloc(sizeof(double)*NR*NR);
+		MCHECK(fld[i].kernel,"sg_kernel");
 		
 		bfld[i].phi_sg = (double *)malloc(sizeof(double)*NR);
 		MCHECK(bfld[i].phi_sg,"bphi_sg");
 		bfld[i].gr_sg = (double *)malloc(sizeof(double)*NR);
 		MCHECK(bfld[i].sig,"bgr_sg");
-		bfld[i].sg_kernel = (double *)malloc(sizeof(double)*NR);
-		MCHECK(bfld[i].sg_kernel,"sg_kernel");
+		bfld[i].kernel = (double *)malloc(sizeof(double)*NR*NR);
+		MCHECK(bfld[i].kernel,"sg_kernel");
 	#endif	
 	
 	
@@ -79,30 +79,18 @@ void alloc_fld(Mode *fld) {
 		bfld[i].dlomk = (double *)malloc(sizeof(double)*NTOT);
 		MCHECK(bfld[i].dlomk,"dlomk");
 	}	
-	Params->hor = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->hor,"H/R");
+		bfld[i].hor = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].hor,"H/R");
 		
-	Params->nus = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->nus,"nus");
+		bfld[i].nus = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].nus,"nus");
 	
-	Params->nub = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->nub, "nub");
+		bfld[i].nub = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].nub, "nub");
 
-	Params->c2 = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->c2, "c2");
+		bfld[i].c2 = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].c2, "c2");
 	
-	
-	Params->dhor = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->dhor,"H/R");
-		
-	Params->dnu = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->dnu,"nus");
-
-	Params->dc2 = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->dc2, "c2");
-	
-	Params->tstop = (double *)malloc(sizeof(double)*NTOT);
-	MCHECK(Params->tstop, "tstop");
 	
 	
 #ifdef COMPANION
@@ -144,10 +132,11 @@ void free_fld(Mode *fld) {
 		free(fld[i].phi_sg);
 		free(fld[i].gr_sg);
 		free(fld[i].gp_sg);
+		free(fld[i].kernel);
 	
 		free(bfld[i].phi_sg);
 		free(bfld[i].gr_sg);
-		free(bfld[i].sg_kernel);
+		free(bfld[i].kernel);
 #endif
 
 
@@ -159,19 +148,16 @@ void free_fld(Mode *fld) {
 		free(bfld[i].dru);
 		free(bfld[i].omk);
 		free(bfld[i].dlomk);
+		
+		free(bfld[i].nus);
+		free(bfld[i].nub);
+		free(bfld[i].c2);
+		free(bfld[i].hor);
+		
 	
 	}
 	free(fld); 
 	free(bfld);
-	
-	free(Params->hor);
-	free(Params->nus);
-	free(Params->nub);
-	free(Params->c2);
-	free(Params->dhor);
-	free(Params->dnu);
-	free(Params->dc2);
-	free(Params->tstop);
 	
 	free(Params);
 

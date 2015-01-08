@@ -1,6 +1,5 @@
 #include "edisk.h"
 
-double *Kernel, *bKernel;
 
 #ifdef GAUSSIAN
 #define EULERGAMMA 0.5772156649015329
@@ -8,76 +7,49 @@ double *Kernel, *bKernel;
 #endif
 
 void poisson(Mode *fld) {
-	int i,j, indxr, indxrp, indx0, indx1;
+	int i,j, n, indxr, indxrp, indx0, indx1;
 	double complex k1,k2,k3;
 	double dr = Params->dr;
 
 
 #ifdef OPENMP
-	 #pragma omp parallel private(i,j,indxr,indxrp,indx0,indx1,k1,k2,k3) shared(fld,bfld,Kernel) 
+	 #pragma omp parallel private(i,n,j,indxr,indxrp,indx0,indx1,k1,k2,k3) shared(fld,bfld) 
      #pragma omp for schedule(static)
 #endif
-	for(i=0;i<NR;i++) {
-		indxr = i+istart;
+	for(n=0;n<NFLUID;n++) {
+		for(i=0;i<NR;i++) {
+			indxr = i+istart;
 
-		fld->phi_sg[i] = 0;
-		for(j=0 ; j < NR-1;j++) {
-			indxrp = j+istart;
-			indx0 = j + i*NR;
- 			indx1 = j+1+i*NR;
+			fld[n].phi_sg[i] = 0;
+			for(j=0 ; j < NR-1;j++) {
+				indxrp = j+istart;
+				indx0 = j + i*NR;
+				indx1 = j+1+i*NR;
 			
-			k1 = (fld->r[indxrp])*(fld->r[indxrp])*(bfld->sig[indxrp])*(fld->sig[indxrp])*Kernel[indx0];
+				k1 = (fld[n].r[indxrp])*(fld[n].r[indxrp])*(bfld[n].sig[indxrp])*(fld[n].sig[indxrp])*fld[n].kernel[indx0];
 			
-			k3 = (fld->r[indxrp+1])*(fld->r[indxrp+1])*(bfld->sig[indxrp+1])*(fld->sig[indxrp+1])*Kernel[indx1];
+				k3 = (fld[n].r[indxrp+1])*(fld[n].r[indxrp+1])*(bfld[n].sig[indxrp+1])*(fld[n].sig[indxrp+1])*fld[n].kernel[indx1];
 			
-			k2 = .5*(k1+k3);
+				k2 = .5*(k1+k3);
 			
 			
-			fld->phi_sg[i] += (dr/6)*( k1 + 4*k2 + k3 );
+				fld[n].phi_sg[i] += (dr/6)*( k1 + 4*k2 + k3 );
 			
-		}
+			}
 		
-		fld->gp_sg[i] = I*(fld->m)*(fld->phi_sg[i])/(fld->r[indxr]);
-	}
+			fld[n].gp_sg[i] = I*(fld[n].m)*(fld[n].phi_sg[i])/(fld[n].r[indxr]);
+		}
 	
-	fld->gr_sg[0] = -(fld->phi_sg[1] - fld->phi_sg[0])/(dr*fld->r[istart]);
-	fld->gr_sg[NR-1] = -(fld->phi_sg[NR-1]-fld->phi_sg[NR-2])/(dr*fld->r[NR-1+istart]);
+		fld[n].gr_sg[0] = -(fld[n].phi_sg[1] - fld[n].phi_sg[0])/(dr*fld[n].r[istart]);
+		fld[n].gr_sg[NR-1] = -(fld[n].phi_sg[NR-1]-fld[n].phi_sg[NR-2])/(dr*fld[n].r[NR-1+istart]);
 	
 #ifdef OPENMP
 	 #pragma omp parallel private(i) shared(fld) 
      #pragma omp for schedule(static)
 #endif
-	for(i=1;i<NR-1;i++) {
-		fld->gr_sg[i] = -(fld->phi_sg[i+1] - fld->phi_sg[i-1])/(2*dr * fld->r[i+istart]);
-	}
-	
-// 	for(i=0;i<NR;i++) {
-// 		if (i==0 || i==NR-1) {
-// 			if (i==0) {
-// 				fld->gr_sg[i] = -(fld->phi_sg[i]);
-// 			}
-// 			else {
-// 				fld->gr_sg[i-1] += fld->phi_sg[i];
-// 				fld->gr_sg[i-1] /= (-2*dr*(fld->r[indxr-1]));
-// 				fld->gr_sg[i] = (fld->phi_sg[i] - fld->phi_sg[i-1])/ (-dr*(fld->r[indxr]));
-// 			}
-// 		
-// 		}
-// 		else {
-// 		
-// 			fld->gr_sg[i] = - (fld->phi_sg[i-1]);
-// 			fld->gr_sg[i-1] += fld->phi_sg[i];
-// 			if (i==1) {
-// 				fld->gr_sg[i-1] /= (-dr*(fld->r[indxr-1]));
-// 			}
-// 			else {
-// 				fld->gr_sg[i-1] /= (-2*dr*(fld->r[indxr-1]));
-// 		
-// 			}
-// 		}
-// 		
-// 	}
-	
+		for(i=1;i<NR-1;i++) {
+			fld[n].gr_sg[i] = -(fld[n].phi_sg[i+1] - fld[n].phi_sg[i-1])/(2*dr * fld[n].r[i+istart]);
+		}
 	
 	
 	
@@ -158,45 +130,43 @@ double kernel_integral(double m, double r, double rp, double horp, double eps) {
 
 }
 
-void init_poisson(double m, double *r) {
-	int i,j,indxr,indxrp,indx;
-	Kernel = (double *)malloc(sizeof(double)*NR*NR);
-	bKernel = (double *)malloc(sizeof(double)*NR*NR);
-	for(i=0;i<NR;i++) {
+void init_poisson(Mode *fld) {
+	int i,j,n,indxr,indxrp,indx;
+	
+	for(n=0;n<NFLUID;n++) {
+		for(i=0;i<NR;i++) {
 
-		for(j=0;j<NR;j++) {
-			indx = j + i*NR;
-			indxr= i + istart;
-			indxrp = j + istart;
+			for(j=0;j<NR;j++) {
+				indx = j + i*NR;
+				indxr= i + istart;
+				indxrp = j + istart;
 			
-			Kernel[indx] = kernel_integral(m, r[indxr],r[indxrp],
-								(Params->hor[indxrp]),Params->eps_sg);
-			bKernel[indx] = kernel_integral(0, r[indxr],r[indxrp],
-								(Params->hor[indxrp]),Params->eps_sg);
+				fld[n].kernel[indx] = kernel_integral(fld[n].m, 
+												fld[n].r[indxr],fld[n].r[indxrp],
+												(bfld[n].hor[indxrp]),Params->eps_sg);
+				bfld[n].kernel[indx] = kernel_integral(0, fld[n].r[indxr],fld[n].r[indxrp],
+									(bfld[n].hor[indxrp]),Params->eps_sg);
+			}
 		}
 	}
 	return;
 }
 
-void free_poisson(void) {
-	free(Kernel);
-	free(bKernel);
-	return;
-}
 
 
 void output_selfgrav(Mode *fld) {
+	FILE *f;
 	int i,j;
 	char fname[STRLEN];
-	strcpy(fname,Params->outdir);
-	strcat(fname,"selfgrav.dat");
-	FILE *f = fopen(fname,"w");
-	fprintf(f,"# logr \t r \t Phi_bg \t gr_bg\n");
-	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\n",
-		fld->lr[i+istart],fld->r[i+istart], bfld->phi_sg[i],bfld->gr_sg[i]);
-	}
-	fclose(f);
+//	strcpy(fname,Params->outdir);
+//	strcat(fname,"selfgrav.dat");
+// 	FILE *f = fopen(fname,"w");
+// 	fprintf(f,"# logr \t r \t Phi_bg \t gr_bg\n");
+// 	for(i=0;i<NR;i++) {
+// 		fprintf(f,"%lg\t%lg\t%lg\t%lg\n",
+// 		fld[n].lr[i+istart],fld[n].r[i+istart], bfld[n].phi_sg[i],bfld[n].gr_sg[i]);
+// 	}
+// 	fclose(f);
 	
 	strcpy(fname,Params->outdir);
 	strcat(fname,"selfgrav_kernel.dat");
@@ -204,7 +174,9 @@ void output_selfgrav(Mode *fld) {
 	fprintf(f,"#r_i\tr_o\tK0\tK1\n"); 
 	for(i=0;i<NR;i++) {
 		for(j=0;j<NR;j++) {
-			fprintf(f,"%lg\t%lg\t%lg\t%lg\t",fld->r[i+istart],fld->r[j+istart],bKernel[j+i*NR],Kernel[j+i*NR]);
+			fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t",fld[0].r[i+istart],
+					fld[0].r[j+istart],bfld[0].kernel[j+i*NR],fld[0].kernel[j+i*NR],
+					bfld[1].kernel[j+i*NR],fld[1].kernel[j+i*NR]);
 		}
 		fprintf(f,"\n");
 	}

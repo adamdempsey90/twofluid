@@ -13,15 +13,7 @@ typedef struct CNmats {
 
 void get_matrices(int i,double dt,Mode *fld);
 
-
-// void get_matrices(int indx, double dt, double r, double m, double nu, double nub,
-// 							double c, double omk, 
-// 							double dlomk, double complex ul, double complex uc, 
-// 							double complex ur, double complex vl, double complex vc,
-// 							double complex vr, double complex sl, double complex sc, 
-// 							double complex sr, Mode *fld);
-// 	
-						
+				
 void cn_solver_init(void);
 void cn_solver_free(void);
 
@@ -117,14 +109,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 }
 
 
-
-// void get_matrices(int indx, double dt, double r, double m, double nus, double nub,
-// 						    double c, double omk, double dlomk, 
-// 							double complex ul,double complex uc, double complex ur, 
-// 							double complex vl, double complex vc, double complex vr, 
-// 							double complex sl, double complex sc, double complex sr,
-// 							Mode *fld) 
-void get_matrices(int indx, double dt, Mode *fld) {
+void get_matrices(int indx, double dt, Mode *fld) 
 {
 /* Fill the A,B,C,K matrices 
 	A = Main Diagonal
@@ -449,30 +434,33 @@ void get_matrices(int indx, double dt, Mode *fld) {
 			A[i][j] -= Agd[i][j];
 			Ad[i][j] -= Adg[i][j];
 		}
-		F[i] = 0;
+		
 	}
 /* Force Vector */
 
+	F[0] = 0; Fd[0] = 0;
+	F[1] = 0; Fd[1] = 0;
+	F[2] = 0; Fd[2] = 0;
 	
 #ifdef COMPANION 
 	F[0] += cstar->gr[indx-istart];
 	F[1] += cstar->gp[indx-istart];
-	F[3] += cstar->gr[indx-istart];
-	F[4] += cstar->gp[indx-istart];
+	Fd[0] += cstar->gr[indx-istart];
+	Fd[1] += cstar->gp[indx-istart];
 #endif
 
 #ifdef INDIRECT 
 	F[0] += CentralStar->gr[indx-istart];
 	F[1] += CentralStar->gp[indx-istart];
-	F[3] += CentralStar->gr[indx-istart];
-	F[4] += CentralStar->gp[indx-istart];
+	Fd[0] += CentralStar->gr[indx-istart];
+	Fd[1] += CentralStar->gp[indx-istart];
 #endif
 	
 #ifdef SELFGRAV
 	F[0] += fld->gr_sg[indx-istart];
 	F[1] += fld->gp_sg[indx-istart];
-	F[3] += fld->gr_sg[indx-istart];
-	F[4] += fld->gp_sg[indx-istart];
+	Fd[0] += fld->gr_sg[indx-istart];
+	Fd[1] += fld->gp_sg[indx-istart];
 #endif
 
 // Don't evolve sigma	
@@ -520,20 +508,23 @@ void get_matrices(int indx, double dt, Mode *fld) {
 
 	
 #ifdef INFINITE
-	for(i=0;i<NEQNS;i++) K[i] = F[i];
+	for(i=0;i<3;i++) {
+		K[i] = F[i]; 
+		K[i+3] = Fd[i];
+	}
 #else
 	for(i=0;i<NEQNS;i++) {
 	K[i] =    M[i][0]*uc + M[i][1]*vc + M[i][2]*sc + M[i][3]*duc + M[i][4]*dvc + M[i][5]*dsc
 			+ U[i][0]*ur + U[i][1]*vr + U[i][2]*sr + U[i][3]*dur + U[i][4]*dvr + U[i][5]*dsr
-			+ L[i][0]*ul + L[i][1]*vl + L[i][2]*sl + L[i][3]*dul + L[i][4]*dvl + L[i][5]*dsl
-			+ dt*F[i];
+			+ L[i][0]*ul + L[i][1]*vl + L[i][2]*sl + L[i][3]*dul + L[i][4]*dvl + L[i][5]*dsl;
+			
 	}
-	K[0] += uc;
-	K[1] += vc;
-	K[2] += sc;
-	K[3] += duc;
-	K[4] += dvc;
-	K[5] += dsc;
+	K[0] += dt*F[0] + uc;
+	K[1] += dt*F[1] + vc;
+	K[2] += dt*F[2] + sc;
+	K[3] += dt*Fd[0] + duc;
+	K[4] += dt*Fd[1] + dvc;
+	K[5] += dt*Fd[2] + dsc;
 #endif	
 	
 // 	for(i=0;i<3;i++) {

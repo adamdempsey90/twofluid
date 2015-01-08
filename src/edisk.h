@@ -24,7 +24,6 @@
 
 #define STRLEN 100
 
-#define NFLUID NEQNS/2
 
 typedef struct Mode {
 
@@ -35,7 +34,7 @@ typedef struct Mode {
 
 #ifdef SELFGRAV
 	double complex *phi_sg, *gr_sg, *gp_sg;
-	double *sg_kernel;
+	double *kernel;
 #endif
 
 	double complex ubc[2], vbc[2], sbc[2];
@@ -46,9 +45,10 @@ typedef struct Bmode {
 	double *dru;
 	double *omk,*dlomk;
 
+	double *hor, *c2, *nus, *nub;
 #ifdef SELFGRAV
 	double *phi_sg, *gr_sg;
-	double *sg_kernel;
+	double *kernel;
 #endif
 } Bmode;
 
@@ -89,8 +89,6 @@ typedef struct Parameters {
 	int numf;
 	char outdir[100];
 	
-	double *hor, *nus, *nub, *c2, *dc2, *dhor, *dnu, *tstop;
-
 } Parameters;
 
 
@@ -170,7 +168,6 @@ void output_CentralStar(double t, int firstopen);
 
 #ifdef SELFGRAV
 void init_poisson(Mode *fld);
-void free_poisson(void);
 void poisson(Mode *fld);
 void output_selfgrav(Mode *fld);
 #endif
