@@ -92,12 +92,15 @@ void output_params(void) {
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
 		\talpha shear = %lg\n \
-		\talpha bulk = %lg\n \
+		\talpha bulk = %lg \n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
+		\tMdust = %lg\n \
 		\trot index =  %lg\n \
 		\tself grav soft =  %lg\n \
+		\t# Dust Parameters #\n \
+		\tDust-to-Gas ratio =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
 		\tinital a.o.p = %lg\n \
@@ -125,8 +128,10 @@ void output_params(void) {
 		Params->sig0,
 		Params->indsig,
 		Params->Mdisk,
+		(Params->dust_to_gas)*(Params->Mdisk),
 		Params->q,
 		Params->eps_sg,
+		Params->dust_to_gas,
 		Params->e0,
 		Params->w0,
 		Params->rs,
@@ -139,6 +144,7 @@ void output_params(void) {
 		Params->numf,
 		Params->tol,
 		Params->outdir);
+	
 	fclose(f);
 
 

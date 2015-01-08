@@ -2,8 +2,9 @@
 
 void user_ic(Mode *fld);
 void calc_cmax(Mode *fld);
+void set_dust_params(int i, double hor, double c2, double omk);
 int init_fld(Mode *fld) {
-	int i;
+	int i,n;
 	double dr = Params->dr;
 	double r,lr;
 	
@@ -11,52 +12,67 @@ int init_fld(Mode *fld) {
 	istart = NG;
 	iend = NR+NG;
 	
-	fld->m = Params->m;
-	
+	fld[0].m = Params->m;
+	fld[1].m = Params->m;
 // #ifdef OPENMP
 //         #pragma omp parallel private(i,r,lr) shared(fld)
 //         #pragma omp for schedule(static)
 // #endif
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
-		fld->lr[i] = lr;
+		fld[0].lr[i] = lr;
 #ifdef LOG10
-		fld->r[i] = pow(10,lr);
+		r = pow(10,lr);
 #else
-		fld->r[i] = exp(lr);
+		r = exp(lr);
 #endif
-		r = fld->r[i];
+		fld[0].r[i] = r;
+
+
 		Params->hor[i] = (Params->h)*pow(r,Params->indfl);
 
 		
-		bfld->sig[i] = (Params->sig0)*pow(r,Params->indsig);
+		bfld[0].sig[i] = (Params->sig0)*pow(r,Params->indsig);
 		
-		bfld->omk[i] = (Params->om0)*pow(r,Params->q);
-		bfld->dlomk[i] = (Params->q);
+		bfld[1].omk[i] = (Params->om0)*pow(r,Params->q);
+		bfld[1].dlomk[i] = (Params->q);
 		
 		
 		Params->c2[i] = (Params->hor[i])*
-							(Params->hor[i])*r*r*(bfld->omk[i])*(bfld->omk[i]);
+							(Params->hor[i])*r*r*(bfld[1].omk[i])*(bfld[1].omk[i]);
 		
-		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
-		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
+		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])
+							*(bfld[1].omk[i])*r*r;
+		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])
+							*(bfld[1].omk[i])*r*r;
 		
-		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
+		bfld[0].omk[i] = (bfld[1].omk[i])
+							*sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
 		
- 		bfld->dlomk[i] += 
- 				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
-			
-		bfld->v[i] = r * (bfld->omk[i]);
-		bfld->u[i] = 0;
-		bfld->dru[i] = 0;
-		fld->u[i] = 0;
-		fld->v[i] = 0;
-		fld->sig[i] = 0;
+ 		bfld[0].dlomk[i] = bfld[1].dlomk[1] + 
+ 				(1-pow(bfld[1].omk[i]/bfld[0].omk[i],2))*(Params->indfl);
+		
+		
+		set_dust_params(i,Params->hor[i],Params->c2[i],bfld[1].omk[i]);
+		
+		fld[1].r[i] = fld[0].r[i];
+		fld[1].lr[i] = fld[0].lr[i];
+		
+		for (n=0;n<NFLUID;n++) {	
+			bfld[n].v[i] = r * (bfld[n].omk[i]);
+			bfld[n].u[i] = 0;
+			bfld[n].dru[i] = 0;
+			fld[n].u[i] = 0;
+			fld[n].v[i] = 0;
+			fld[n].sig[i] = 0;
 #ifdef SELFGRAV
-		fld->phi_sg[i] = 0;
-		fld->gr_sg[i] = 0;
-		fld->gp_sg[i] = 0;
+			fld[n].phi_sg[i] = 0;
+			fld[n].gr_sg[i] = 0;
+			fld[n].gp_sg[i] = 0;
+			bfld[n].gr_sg[i] = 0;
+			bfld[n].phi_sg[i] = 0;
 #endif
+		}
 	}
 	Params->indnus = 2 *(Params->indfl) + Params->q + 2;
 	Params->indnub = 2 *(Params->indfl) + Params->q + 2;
@@ -79,7 +95,7 @@ int init_fld(Mode *fld) {
 #endif
 #ifdef SELFGRAV
 	printf("Initializing self gravity\n");
-	init_poisson(fld->m,fld->r);
+	init_poisson(fld);
 	printf("Solving for self gravity based on i.c \n");
 	poisson(fld);
 	output_selfgrav(fld);
@@ -99,13 +115,13 @@ void user_ic(Mode *fld) {
 	double complex E0;
 	double sigma = .05;
 	double r0 = -.2;
-	double aspect = (fld->lr[iend] - fld->lr[0]);
+	double aspect = (fld[0].lr[iend] - fld[0].lr[0]);
 	
-	ri = fld->r[istart];
-	ro = fld->r[iend-1];
+	ri = fld[0].r[istart];
+	ro = fld[0].r[iend-1];
 	for(i=0;i<NTOT;i++) {
-		lr = fld->lr[i];
-		r = fld->r[i];
+		lr = fld[0].lr[i];
+		r = fld[0].r[i];
 		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
 //		E0 = E0 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
@@ -114,38 +130,31 @@ void user_ic(Mode *fld) {
 //		E0 = 0;
 
 //		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
-		fld->u[i] = I*(bfld->v[i])*E0;
-		fld->v[i] = .5*(bfld->v[i])*E0;	
+		fld[0].u[i] = I*(bfld->v[i])*E0;
+		fld[0].v[i] = .5*(bfld->v[i])*E0;	
 //		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
 //					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
 //		fld->sig[i] = .001*sin(M_PI * ( r - ri)/(ro-ri));
-		fld->sig[i] = 0;
+		fld[0].sig[i] = 0;
 	}
 
 /* Set B.C */	
 /* Grab the inner and outer b.c's from the initialized profile. */
 
 //	u_in_bc = fld->u[istart];
-	u_in_bc = 0;
-	u_out_bc = fld->u[iend-1];
-	
-//	v_in_bc = fld->v[istart];
-	v_in_bc = 0;
-	v_out_bc = fld->v[iend-1];
-	
-//	s_in_bc = fld->sig[istart];
-	s_in_bc = 0;
-	s_out_bc = fld->sig[iend-1];
-//	s_out_bc = fld->sig[iend-1];
-	
-// 	for(i=0;i<istart;i++) {
-// 		fld->u[i] = u_in_bc;
-// 		fld->v[i] = v_in_bc;
-// 		fld->sig[i] = s_in_bc;
-// 		fld->u[i+iend] = u_out_bc;
-// 		fld->v[i+iend] = v_out_bc;
-// 		fld->sig[i+iend] = s_out_bc;
-// 	}
+	for(i=0;i<NFLUID;i++) {
+		
+		fld[i].ubc[0] = fld[i].u[istart];
+		fld[i].ubc[1] = fld[i].u[iend-1];
+		
+		fld[i].vbc[0] = fld[i].v[istart];
+		fld[i].vbc[1] = fld[i].v[iend-1];
+		
+		fld[i].sbc[0] = fld[i].sig[istart];
+		fld[i].sbc[1] = fld[i].sig[iend-1];
+		
+	}
+
 	
 	return;
 }
@@ -159,8 +168,27 @@ void calc_cmax(Mode *fld) {
 	for(i=istart;i<iend;i++) {
 		if (sqrt(Params->c2[i]) > Params->cmax) {
 			Params->cmax = sqrt(Params->c2[i]);
-			Params->rcmax = fld->r[i];
+			Params->rcmax = fld[0].r[i];
+		}
+		if (sqrt(Params->dc2[i]) > Params->cmax) {
+			Params->cmax = sqrt(Params->dc2[i]);
+			Params->rcmax = fld[1].r[i];
 		}
 	}
+	return;
+}
+
+void set_dust_params(int i, double hor, double c2, double omk) {
+	double eta = fabs(.5*hor*hor*(Params->indsig));
+	double a = Params->dalpha;
+
+	Params->tstop[i] = .013*(Params->dust_to_gas)/eta;
+	Params->dnu[i] = a * (1 + tstop + 4*tstop*tstop) * pow(1 + tstop*tstop,-2);
+	Params->dc2[i] = a*c2*(1+2*tstop + 1.25*tstop*tstop) * pow(1 + tstop*tstop,-2);
+
+	Params->dhor[i] = hor * sqrt( a / tstop);
+	
+	Params->tstop[i] /= omk;
+
 	return;
 }

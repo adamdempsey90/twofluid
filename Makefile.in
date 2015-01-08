@@ -1,4 +1,4 @@
-EXECUTABLE=edisk
+EXECUTABLE=twofluid
 SOURCES=init.c alloc.c main.c readinputs.c utils.c output.c boundary.c restart.c
 HEADER=edisk.h rk45.h
 

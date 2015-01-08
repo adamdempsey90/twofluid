@@ -24,6 +24,7 @@
 
 #define STRLEN 100
 
+#define NFLUID NEQNS/2
 
 typedef struct Mode {
 
@@ -34,8 +35,10 @@ typedef struct Mode {
 
 #ifdef SELFGRAV
 	double complex *phi_sg, *gr_sg, *gp_sg;
+	double *sg_kernel;
 #endif
 
+	double complex ubc[2], vbc[2], sbc[2];
 } Mode;
 
 typedef struct Bmode {
@@ -45,6 +48,7 @@ typedef struct Bmode {
 
 #ifdef SELFGRAV
 	double *phi_sg, *gr_sg;
+	double *sg_kernel;
 #endif
 } Bmode;
 
@@ -65,6 +69,7 @@ typedef struct Parameters {
 			om0,
 			q,
 			eps_sg,
+			dust_to_gas,
 			e0,
 			w0,
 			rs,
@@ -77,13 +82,14 @@ typedef struct Parameters {
 			endt,
 			tol,
 			cmax,
-			rcmax;
+			rcmax,
+			dalpha;
 			
 	double dr;
 	int numf;
 	char outdir[100];
 	
-	double *hor, *nus, *nub, *c2;
+	double *hor, *nus, *nub, *c2, *dc2, *dhor, *dnu, *tstop;
 
 } Parameters;
 
@@ -117,7 +123,7 @@ void free_fld(Mode *fld);
 void output_disk(double *lr, double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
-void wavekillbc(Mode *fld,double dt);
+void wavekillbc(Mode *fld, double dt);
 int restart(Mode *fld);
 
 void matmat(double complex *A, double complex *B, double complex *C, 
@@ -163,7 +169,7 @@ void output_CentralStar(double t, int firstopen);
 
 
 #ifdef SELFGRAV
-void init_poisson(double m, double *r);
+void init_poisson(Mode *fld);
 void free_poisson(void);
 void poisson(Mode *fld);
 void output_selfgrav(Mode *fld);

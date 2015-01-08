@@ -22,13 +22,13 @@ void read_inputs(char *inputdir) {
 			indsig,
 			q,
 			eps_sg,
+			dust_to_gas, 
 			e0,
 			w0,
 			rs,
 			init_star_rad,
 			init_star_phi,
 			ms,
-			oms,
 			t0,
 			tau,
 			endt,
@@ -57,6 +57,8 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"sigma index =  %lg \n",&indsig);
 	fscanf(f,"rot index =  %lg \n",&q);
 	fscanf(f,"self grav soft =  %lg \n",&eps_sg);
+	fgets(garbage,sizeof(garbage),f);	// Dust Parameters
+	fscanf(f,"Dust-to-Gas ratio =  %lg \n",&dust_to_gas);
 	fgets(garbage,sizeof(garbage),f);	// Initial Eccentricty
 	fscanf(f,"initial e = %lg \n",&e0);
 	fscanf(f,"initial a.o.p = %lg \n",&w0);
@@ -87,6 +89,7 @@ void read_inputs(char *inputdir) {
 	Params->indsig = indsig;
 	Params->q = q;
 	Params->eps_sg = eps_sg;
+	Params->dust_to_gas = dust_to_gas;
 	Params->e0 = e0;
 	Params->w0 = w0;
 	Params->rs = rs;
@@ -107,6 +110,9 @@ void read_inputs(char *inputdir) {
 		Params->Mdisk = 2*M_PI*sig0 * (rmax-rmin);
 	}
 	Params->om0 = sqrt(Params->ms + Params->Mdisk);
+	
+	Params->dalpha = alpha_s + alpha_b;
+	
 	strcpy(Params->outdir,outdir);
 	NTOT = NR+2*NG;
 	
@@ -130,8 +136,11 @@ void read_inputs(char *inputdir) {
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
+		\tMdust = %lg\n \
 		\trot index =  %lg\n \
 		\tself grav soft =  %lg\n \
+		\t# Dust Parameters #\n \
+		\tDust-to-Gas ratio =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
 		\tinital a.o.p = %lg\n \
@@ -159,8 +168,10 @@ void read_inputs(char *inputdir) {
 		Params->sig0,
 		Params->indsig,
 		Params->Mdisk,
+		(Params->dust_to_gas)*(Params->Mdisk),
 		Params->q,
 		Params->eps_sg,
+		Params->dust_to_gas,
 		Params->e0,
 		Params->w0,
 		Params->rs,

@@ -13,7 +13,10 @@ void solve(double complex *A, double complex *B);
 void matvec(double complex *A, double complex *B, double complex *C, 
 					double complex alpha, double complex beta) ;
 void main(void) {
-	double complex A[3][3], B[3][3],C[3][3];
+	double complex A[3][3], B[3][3],C[3][3],
+				   Agd[3][3], Adg[3][3], 
+				   Bgd[3][3], Bdg[3][3],
+				   Cgd[3][3], Cdg[3][3];
 	int i,j;
 //	A = (double complex *)malloc(sizeof(double complex)*3*3);
 //	B = (double complex *)malloc(sizeof(double complex)*3);

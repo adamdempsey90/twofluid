@@ -1,96 +1,126 @@
 #include "edisk.h"
 
-void malloc_err(const char *err_str);
+#define MCHECK(A,B)	if (A == NULL) malloc_err(B)
 
+
+void malloc_err(const char *err_str) {
+
+	MPI_Printf("\n\n\nError Allocating:\n");
+	MPI_Printf(err_str);
+	MPI_Printf("\n\n\n");
+	
+	return;
+}
 void alloc_fld(Mode *fld) {
+	int i;
 	
-	fld->u = (double complex *)malloc(sizeof(double complex)*NTOT);
-	if (fld->u == NULL) malloc_err("u");
+	for(i=0;i<NFLUID;i++) {
 	
-	fld->v = (double complex *)malloc(sizeof(double complex)*NTOT);
-	if (fld->v == NULL) malloc_err("v");
+		fld[i].u = (double complex *)malloc(sizeof(double complex)*NTOT);
+		MCHECK(fld[i].u,"u");
 	
-	fld->sig = (double complex *)malloc(sizeof(double complex)*NTOT);
-	if (fld->sig == NULL) malloc_err("sigma");
+		fld[i].v = (double complex *)malloc(sizeof(double complex)*NTOT);
+		MCHECK(fld[i].v,"v");
 	
-	fld->dtu = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->dtu == NULL) malloc_err("dtu");
+		fld[i].sig = (double complex *)malloc(sizeof(double complex)*NTOT);
+		MCHECK(fld[i].sig,"sigma");
 	
-	fld->dtv = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->dtv == NULL) malloc_err("dtv");
+		fld[i].dtu = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].dtu,"dtu");
 	
-	fld->dts = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->dts == NULL) malloc_err("dtsigma");
+		fld[i].dtv = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].dtv,"dtv");
 	
-	
-	fld->r = (double *)malloc(sizeof(double)*NTOT);
-	if (fld->r == NULL) malloc_err("r");
-	
-	fld->lr = (double *)malloc(sizeof(double)*NTOT);
-	if (fld->lr == NULL) malloc_err("lr");
-	
-#ifdef SELFGRAV
-	fld->phi_sg = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->phi_sg == NULL) malloc_err("phi_sg");
-	fld->gr_sg = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->gr_sg == NULL) malloc_err("gr_sg");
-	fld->gp_sg = (double complex *)malloc(sizeof(double complex)*NR);
-	if (fld->gp_sg == NULL) malloc_err("gp_sg");
-	
-	bfld->phi_sg = (double *)malloc(sizeof(double)*NR);
-	if (bfld->phi_sg == NULL) malloc_err("bphi_sg");
-	bfld->gr_sg = (double *)malloc(sizeof(double)*NR);
-	if (bfld->gr_sg == NULL) malloc_err("bgr_sg");
-#endif	
+		fld[i].dts = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].dts,"dtsigma");
 	
 	
-	bfld->u = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->u == NULL) malloc_err("vxbar");	
-
-	bfld->v = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->v == NULL) malloc_err("vybar");
+		fld[i].r = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(fld[i].r,"r");
 	
-	bfld->sig = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->sig == NULL) malloc_err("dbar");
+		fld[i].lr = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(fld[i].lr,"lr");
 	
-	bfld->dru = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->dru == NULL) malloc_err("drvxbar");
+	#ifdef SELFGRAV
+		fld[i].phi_sg = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].phi_sg,"phi_sg");
+		fld[i].gr_sg = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].gr_sg,"gr_sg");
+		fld[i].gp_sg = (double complex *)malloc(sizeof(double complex)*NR);
+		MCHECK(fld[i].gr_sg,"gp_sg");
 	
-	bfld->omk = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->omk == NULL) malloc_err("omk");
-	
-	bfld->dlomk = (double *)malloc(sizeof(double)*NTOT);
-	if (bfld->dlomk == NULL) malloc_err("dlomk");
+		fld[i].sg_kernel = (double *)malloc(sizeof(double)*NR);
+		MCHECK(fld[i].sg_kernel,"sg_kernel");
 		
+		bfld[i].phi_sg = (double *)malloc(sizeof(double)*NR);
+		MCHECK(bfld[i].phi_sg,"bphi_sg");
+		bfld[i].gr_sg = (double *)malloc(sizeof(double)*NR);
+		MCHECK(bfld[i].sig,"bgr_sg");
+		bfld[i].sg_kernel = (double *)malloc(sizeof(double)*NR);
+		MCHECK(bfld[i].sg_kernel,"sg_kernel");
+	#endif	
+	
+	
+		bfld[i].u = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].u,"vxbar");	
+
+		bfld[i].v = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].v,"vybar");
+	
+		bfld[i].sig = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].sig,"dbar");
+	
+		bfld[i].dru = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].dru,"drvxbar");
+	
+		bfld[i].omk = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].omk,"omk");
+	
+		bfld[i].dlomk = (double *)malloc(sizeof(double)*NTOT);
+		MCHECK(bfld[i].dlomk,"dlomk");
+	}	
 	Params->hor = (double *)malloc(sizeof(double)*NTOT);
-	if (Params->hor == NULL) malloc_err("H/R");
+	MCHECK(Params->hor,"H/R");
 		
 	Params->nus = (double *)malloc(sizeof(double)*NTOT);
-	if (Params->nus == NULL) malloc_err("nus");
+	MCHECK(Params->nus,"nus");
 	
 	Params->nub = (double *)malloc(sizeof(double)*NTOT);
-	if (Params->nub == NULL) malloc_err("nub");
+	MCHECK(Params->nub, "nub");
 
 	Params->c2 = (double *)malloc(sizeof(double)*NTOT);
-	if (Params->c2 == NULL) malloc_err("c2");
+	MCHECK(Params->c2, "c2");
+	
+	
+	Params->dhor = (double *)malloc(sizeof(double)*NTOT);
+	MCHECK(Params->dhor,"H/R");
+		
+	Params->dnu = (double *)malloc(sizeof(double)*NTOT);
+	MCHECK(Params->dnu,"nus");
+
+	Params->dc2 = (double *)malloc(sizeof(double)*NTOT);
+	MCHECK(Params->dc2, "c2");
+	
+	Params->tstop = (double *)malloc(sizeof(double)*NTOT);
+	MCHECK(Params->tstop, "tstop");
 	
 	
 #ifdef COMPANION
 	cstar = (Star *)malloc(sizeof(Star));
-	if (cstar == NULL) malloc_err("cstar");
+	MCHECK(cstar,"cstar");
 	cstar->gr = (double complex *)malloc(sizeof(double complex)*NR);
-	if (cstar->gr == NULL) malloc_err("gr_c");
+	MCHECK(cstar->gr,"gr_c");
 	cstar->gp = (double complex *)malloc(sizeof(double complex)*NR);
-	if (cstar->gp == NULL) malloc_err("gp_c");
+	MCHECK(cstar->gp,"gp_c");
 #endif	
 
 #ifdef INDIRECT
 	CentralStar = (Star *)malloc(sizeof(Star));
-	if (CentralStar == NULL) malloc_err("CentralStar");
+	MCHECK(CentralStar,"CentralStar");
 	CentralStar->gr = (double complex *)malloc(sizeof(double complex)*NR);
-	if (CentralStar->gr == NULL) malloc_err("gr_central");
+	MCHECK(CentralStar->gr,"gr_central");
 	CentralStar->gp = (double complex *)malloc(sizeof(double complex)*NR);
-	if (CentralStar->gp == NULL) malloc_err("gp_central");
+	MCHECK(CentralStar->gp,"gp_central");
 #endif
 
 	
@@ -101,40 +131,48 @@ void alloc_fld(Mode *fld) {
 
 
 void free_fld(Mode *fld) {
-
-	free(fld->u);
-	free(fld->v);
-	free(fld->sig);
+	int i;
+	for(i=0;i<NFLUID;i++) {	
+		free(fld[i].u);
+		free(fld[i].v);
+		free(fld[i].sig);
 	
-	free(fld->r);
-	free(fld->lr);
+		free(fld[i].r);
+		free(fld[i].lr);
 	
 #ifdef SELFGRAV
-	free(fld->phi_sg);
-	free(fld->gr_sg);
-	free(fld->gp_sg);
+		free(fld[i].phi_sg);
+		free(fld[i].gr_sg);
+		free(fld[i].gp_sg);
 	
-	free(bfld->phi_sg);
-	free(bfld->gr_sg);
+		free(bfld[i].phi_sg);
+		free(bfld[i].gr_sg);
+		free(bfld[i].sg_kernel);
 #endif
 
 
-	free(fld);
 	
-	free(bfld->u);
-	free(bfld->v);
-	free(bfld->sig);
+		free(bfld[i].u);
+		free(bfld[i].v);
+		free(bfld[i].sig);
 
-	free(bfld->dru);
-	free(bfld->omk);
-	free(bfld->dlomk);
+		free(bfld[i].dru);
+		free(bfld[i].omk);
+		free(bfld[i].dlomk);
 	
+	}
+	free(fld); 
 	free(bfld);
 	
 	free(Params->hor);
 	free(Params->nus);
 	free(Params->nub);
 	free(Params->c2);
+	free(Params->dhor);
+	free(Params->dnu);
+	free(Params->dc2);
+	free(Params->tstop);
+	
 	free(Params);
 
 #ifdef COMPANION
@@ -153,12 +191,3 @@ void free_fld(Mode *fld) {
 }
 
 
-void malloc_err(const char *err_str) {
-
-	MPI_Printf("\n\n\n");
-	MPI_Printf("Error Allocating:\n");
-	MPI_Printf(err_str);
-	MPI_Printf("\n\n\n");
-	
-	return;
-}

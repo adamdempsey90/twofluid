@@ -43,35 +43,35 @@ void matmat(double complex *A, double complex *B, double complex *C,
 	A,B, and C are all matrices.
 	This is essenitally a wrapper for the ZGEMM BLAS routine 
 */
-	double complex tC[3][3];
+	double complex tC[NEQNS][NEQNS];
 	int i,j;
 	char TRANSA = 't';
 	char TRANSB = 't';
-	int m = 3;
-	int n = 3;
-	int k = 3;
-	int LDA = 3;
-	int LDB = 3;
-	int LDC = 3;
+	int m = NEQNS;
+	int n = NEQNS;
+	int k = NEQNS;
+	int LDA = NEQNS;
+	int LDB = NEQNS;
+	int LDC = NEQNS;
 		 
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<3;j++) tC[j][i] = C[j + 3*i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<NEQNS;j++) tC[j][i] = C[j + NEQNS*i];
 	}
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<3;j++)	C[i + 3*j] = tC[j][i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<NEQNS;j++)	C[i + NEQNS*j] = tC[j][i];
 	}
 	
 	zgemm_(&TRANSA, &TRANSB, &m,&n,&k,&alpha,A,&LDA,B,&LDB,&beta,C,&LDC);
 
 
-	for(i=0;i<3;i++) {
-		for(j=0;j<3;j++) tC[j][i] = C[j + 3*i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<NEQNS;j++) tC[j][i] = C[j + NEQNS*i];
 	}
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<3;j++)	C[i + 3*j] = tC[j][i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<NEQNS;j++)	C[i + NEQNS*j] = tC[j][i];
 	}
 	return;
 
@@ -87,9 +87,9 @@ void matvec(double complex *A, double complex *B, double complex *C,
 */
 
 	char TRANS = 't';
-	int m = 3;
-	int n = 3;
-	int LDA = 3;
+	int m = NEQNS;
+	int n = NEQNS;
+	int LDA = NEQNS;
 	int INCX = 1;
 	int INCY = 1;
 		 
@@ -107,45 +107,45 @@ void matsolve(double complex *A, double complex *B) {
 	x is stored in B on output
 	This is essentially a wrapper for the ZGESV BLAS routine
 */
-	double complex tB[4][3], tA[3][3];
+	double complex tB[NEQNS+1][NEQNS], tA[NEQNS][NEQNS];
 	int i,j;
-	int N = 3;
-	int NRHS = 4;
-	int LDA = 3;
+	int N = NEQNS;
+	int NRHS = NEQNS+1;
+	int LDA = NEQNS;
 	int IPIV[N];
-	int LDB = 3;
+	int LDB = NEQNS;
 	int INFO;
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<4;j++) {
-			if (j<3) {
-				tA[j][i] = A[j + 3*i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<(NEQNS+1);j++) {
+			if (j<NEQNS) {
+				tA[j][i] = A[j + NEQNS*i];
 			}
-			tB[j][i] = B[j+4*i];
+			tB[j][i] = B[j+(NEQNS+1)*i];
 		}
 	}
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<4;j++) {
-			if (j<3) {
-				A[i + 3*j] = tA[j][i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<(NEQNS+1);j++) {
+			if (j<NEQNS) {
+				A[i + NEQNS*j] = tA[j][i];
 			}
-			B[i+3*j] = tB[j][i];
+			B[i+NEQNS*j] = tB[j][i];
 		}
 	}
 	
 	
 	zgesv_(&N,&NRHS,A,&LDA,&IPIV,B,&LDB,&INFO);
 
-	for(i=0;i<3;i++) {
-		for(j=0;j<4;j++) {
-			tB[j][i] = B[i+3*j];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j<(NEQNS+1);j++) {
+			tB[j][i] = B[i+NEQNS*j];
 		}
 	}
 	
-	for(i=0;i<3;i++) {
-		for(j=0;j<4;j++) {
-			B[j + 4*i] = tB[j][i];
+	for(i=0;i<NEQNS;i++) {
+		for(j=0;j< (NEQNS+1);j++) {
+			B[j + (NEQNS+1)*i] = tB[j][i];
 		}
 	}
 

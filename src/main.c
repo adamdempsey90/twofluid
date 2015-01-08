@@ -13,12 +13,11 @@ int main(int argc, char *argv[]) {
 	tic = clock();
 	
 
-	Mode *fld = (Mode *)malloc(sizeof(Mode));
+	Mode *fld = (Mode *)malloc(NFLUID*sizeof(Mode));
 
-	bfld = (Bmode *)malloc(sizeof(Bmode));
+	bfld = (Bmode *)malloc(NFLUID*sizeof(Bmode));
 	Params = (Parameters *)malloc(sizeof(Parameters));
 
-	//cstar = (Star *)malloc(sizeof(Star));
 
 	
 	
@@ -105,7 +104,7 @@ int main(int argc, char *argv[]) {
 #endif
 	 
 #ifdef INDIRECT
-		if (CentralStar->r >= fld->r[0]) {
+		if (CentralStar->r >= fld[0].r[0]) {
 			MPI_Printf("ERROR Central Star has hit the disk inner edge...\n");
 			break;
 		}
