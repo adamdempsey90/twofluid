@@ -19,7 +19,7 @@ def create_defines_file():
 		if 'SELFGRAV2D' in defs and 'INFINITE' in defs:
 			g.write('#define NEQNS 4\n')
 		else:
-			g.write('#define NEQNS 3\n')
+			g.write('#define NEQNS 6\n')
 		g.write('#define NFLUID 2\n')
 	
 				
@@ -64,6 +64,13 @@ def generate_extra_files(defs):
 	
 	if 'SELFGRAV2D' in defs:
 		algfile += ' poisson2d.c'
+	
+	if 'TRANSPORT' in defs:
+		algfile += ' transport.c'
+	
+	if 'WAVEKILLBC' in defs or 'KILLIN' in defs or 'KILLOUT' in defs:
+		algfile += ' wavekill.c'
+	
 	
 	print 'Adding ', algfile, 'to the Makefile'
 	return algfile

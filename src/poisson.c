@@ -51,7 +51,7 @@ void poisson(Mode *fld) {
 			fld[n].gr_sg[i] = -(fld[n].phi_sg[i+1] - fld[n].phi_sg[i-1])/(2*dr * fld[n].r[i+istart]);
 		}
 	
-	
+	}
 	
 	return;			
 

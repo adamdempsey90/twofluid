@@ -1,5 +1,5 @@
 EXECUTABLE=twofluid
-SOURCES=init.c alloc.c main.c readinputs.c utils.c output.c boundary.c restart.c algo_driver.c implicit.c star.c poisson.c
+SOURCES=init.c alloc.c main.c readinputs.c utils.c output.c boundary.c restart.c algo_driver.c implicit.c
 HEADER=edisk.h rk45.h
 
 LDFLAGS=-llapack -lblas -lm -lgomp

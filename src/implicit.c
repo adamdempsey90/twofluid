@@ -152,20 +152,19 @@ void get_matrices(int indx, double dt, Mode *fld)
 	
 	double r = fld[0].r[indx];
 	double m = fld[0].m;
-	double nus = Params->nus[indx];
-	double nub = Params->nus[indx];
-	double c = Params->c2[indx];
+	double nus = bfld[0].nus[indx];
+	double nub = bfld[0].nub[indx];
+	double c = bfld[0].c2[indx];
 	double omk = bfld[0].omk[indx];
 	double dlomk = bfld[0].dlomk[indx];
 	
-	double dnu = Params->dnu[indx];
-	double dc = Params->dc2[indx];
+	double dnu = bfld[1].nus[indx];
+	double dc = bfld[1].c2[indx];
 	double domk = bfld[1].omk[indx];
 	double ddlomk = bfld[1].dlomk[indx];
 	
 	double dtg = Params->dust_to_gas;
-	double invtstop = 1.0/(Params->tstop[indx]);
-	
+	double invtstop = 1.0/bfld[1].nub[indx];		// Dust nub contains tstop
 	double dr  = (Params->dr);		// Logarithmic spacing
 	double omf;
 	double r2 = r*r;
@@ -191,17 +190,18 @@ void get_matrices(int indx, double dt, Mode *fld)
 /* Gas */	
 	
 /* Main Diagonal, inviscid */	
-	A[0][0] = I*m*omk;
+	A[0][0] = 0;
 	A[0][1]= 2*(omf + omk);
 	A[0][2] = 0;
 	
 	A[1][0] = -(2*omf + omk*(2+dlomk));
-	A[1][1] = I*m*omk;
+	A[1][1] = 0;
 	A[1][2] = I*m*c/r;
 	
 	A[2][0] = -(Params->indsig + 1.)/r;
 	A[2][1] = I*m/r;
-	A[2][2] = I*m*omk;
+	A[2][2] = 0;
+
 
 
 /* Main Diagonal, viscous */
@@ -304,17 +304,17 @@ void get_matrices(int indx, double dt, Mode *fld)
 /* Dust */
 
 /* Main Diagonal  */	
-	Ad[0][0] = I*m*domk;
+	Ad[0][0] = 0;
 	Ad[0][1] = 2*(omf + domk);
 	Ad[0][2] = 0;
 	
 	Ad[1][0] = -(2*omf + domk*(2+ddlomk));
-	Ad[1][1] = I*m*domk;
+	Ad[1][1] = 0;
 	Ad[1][2] = I*m*dc/r;
 	
 	Ad[2][0] = -(Params->indsig + 1.)/r;
 	Ad[2][1] = I*m/r;
-	Ad[2][2] = I*m*domk;
+	Ad[2][2] = 0;
 
 /* D Matrix */
 	Bd[0][0] = 0;
@@ -429,13 +429,23 @@ void get_matrices(int indx, double dt, Mode *fld)
 	Cdg[2][1] = 0;
 	Cdg[2][2] = (dnu/dtg);
 
-	for(i=0;i<NEQNS;i++) {
-		for(j=0;j<NEQNS;j++) {
+#ifdef TRANSPORT
+	A[0][0] += I*m*omk;
+	A[1][1] += I*m*omk;
+	A[2][2] += I*m*omk;
+	Ad[0][0] += I*m*domk;
+	Ad[1][1] += I*m*domk;
+	Ad[2][2] += I*m*domk;
+#endif
+
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++) {
 			A[i][j] -= Agd[i][j];
 			Ad[i][j] -= Adg[i][j];
 		}
-		
 	}
+	
+
 /* Force Vector */
 
 	F[0] = 0; Fd[0] = 0;
@@ -502,6 +512,19 @@ void get_matrices(int indx, double dt, Mode *fld)
 			M[i][j] *= .5*dt;
 			U[i][j] *= .5*dt;
 			L[i][j] *= .5*dt;
+			
+			M[i+3][j] *= .5*dt;
+			U[i+3][j] *= .5*dt;
+			L[i+3][j] *= .5*dt;
+			
+			M[i][j+3] *= .5*dt;
+			U[i][j+3] *= .5*dt;
+			L[i][j+3] *= .5*dt;
+			
+			M[i+3][j+3] *= .5*dt;
+			U[i+3][j+3] *= .5*dt;
+			L[i+3][j+3] *= .5*dt;
+			
 #endif
 		}
 	}	

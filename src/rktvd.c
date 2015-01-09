@@ -188,7 +188,7 @@ void coefficient_matrix(Mode *fld) {
 		nub = Params->nub[i];
 		r = fld->r[i];
 		m = fld->m;
-		c2 = Params->c2[i];
+		c2 = fld[0].c2[i];
 		gams = Params->indnus + Params->indsig;
 		gamb = Params->indnub + Params->indsig;
 		

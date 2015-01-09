@@ -1,36 +1,40 @@
 #include "edisk.h"
 
 void fld_2_y(Mode *fld, double complex *q) {
-
-	memcpy(&q[0],&(fld->u[istart]),sizeof(double complex)*NR);
-	memcpy(&q[NR],&(fld->v[istart]),sizeof(double complex)*NR);
-	memcpy(&q[2*NR],&(fld->sig[istart]),sizeof(double complex)*NR);
-	
+	int n;
+	for(n=0;n<NFLUID;n++) {
+		memcpy(&q[0 + 3*n*NR],&(fld[n].u[istart]),sizeof(double complex)*NR);
+		memcpy(&q[NR + 3*n*NR],&(fld[n].v[istart]),sizeof(double complex)*NR);
+		memcpy(&q[2*NR + 3*n*NR],&(fld[n].sig[istart]),sizeof(double complex)*NR);
+	}	
 	return;
 }
 void y_2_fld(Mode *fld, double complex *q) {
-
-	memcpy(&(fld->u[istart]),&q[0],sizeof(double complex)*NR);
-	memcpy(&(fld->v[istart]),&q[NR],sizeof(double complex)*NR);
-	memcpy(&(fld->sig[istart]),&q[2*NR],sizeof(double complex)*NR);
-	
+	int n;
+	for(n=0;n<NFLUID;n++) {
+		memcpy(&(fld[n].u[istart]),&q[0+3*n*NR],sizeof(double complex)*NR);
+		memcpy(&(fld[n].v[istart]),&q[NR+3*n*NR],sizeof(double complex)*NR);
+		memcpy(&(fld[n].sig[istart]),&q[2*NR+3*n*NR],sizeof(double complex)*NR);
+	}
 	return;
 }
 
 void fld_2_f(Mode *fld, double complex *q) {
-
-	memcpy(&q[0],&(fld->dtu[0]),sizeof(double complex)*NR);
-	memcpy(&q[NR],&(fld->dtv[0]),sizeof(double complex)*NR);
-	memcpy(&q[2*NR],&(fld->dts[0]),sizeof(double complex)*NR);
-	
+	int n;
+	for(n=0;n<NFLUID;n++) {
+		memcpy(&q[0 + 3*n*NR],&(fld[n].dtu[0]),sizeof(double complex)*NR);
+		memcpy(&q[NR + 3*n*NR],&(fld[n].dtv[0]),sizeof(double complex)*NR);
+		memcpy(&q[2*NR + 3*n*NR],&(fld[n].dts[0]),sizeof(double complex)*NR);
+	}
 	return;
 }
 void f_2_fld(Mode *fld, double complex *q) {
-
-	memcpy(&(fld->dtu[0]),&q[0],sizeof(double complex)*NR);
-	memcpy(&(fld->dtv[0]),&q[NR],sizeof(double complex)*NR);
-	memcpy(&(fld->dts[0]),&q[2*NR],sizeof(double complex)*NR);
-	
+	int n;
+	for(n=0;n<NFLUID;n++) {
+		memcpy(&(fld[n].dtu[0]),&q[0 + 3*n*NR],sizeof(double complex)*NR);
+		memcpy(&(fld[n].dtv[0]),&q[NR + 3*n*NR],sizeof(double complex)*NR);
+		memcpy(&(fld[n].dts[0]),&q[2*NR + 3*n*NR],sizeof(double complex)*NR);
+	}
 	return;
 }
 

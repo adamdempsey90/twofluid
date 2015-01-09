@@ -16,19 +16,22 @@ void init_CentralStar(Mode *fld) {
 
 
 void calc_star_pos(Mode *fld) {
-	int i,indx0,indx1;
+	int i,indx0,indx1,n;
 	double complex k1, k2;
 	double dr = Params->dr;
-	
+	double complex sigtot0, sigtot1;
 	CentralStar->rc = 0;
 	for(i=0;i<NR-1;i++) {
 		indx0 = i + istart;
 		indx1 = i + 1 + istart;
-		k1 = (fld->r[indx0])*(fld->r[indx0])*(fld->r[indx0])*
-						(bfld->sig[indx0])*(fld->sig[indx0]);
+		sigtot0 = 0; sigtot1 = 0;
+		for(n=0;n<NFLUID;n++) {
+			sigtot0 += bfld[n].sig[indx0]*fld[n].sig[indx0];
+			sigtot1 += bfld[n].sig[indx1]*fld[n].sig[indx1];
+		}	
+		k1 = (fld[0].r[indx0])*(fld[0].r[indx0])*(fld[0].r[indx0]) * sigtot0;
 	
-		k2 = (fld->r[indx1])*(fld->r[indx1])*(fld->r[indx1])*
-						(bfld->sig[indx1])*(fld->sig[indx1]);
+		k2 = (fld[0].r[indx1])*(fld[0].r[indx1])*(fld[0].r[indx1])* sigtot1;
 		
 		CentralStar->rc += k1+k2;
 	}
@@ -45,8 +48,8 @@ void calc_star_accel(Mode *fld) {
 	int i;
 	double r;	
 	for(i=0;i<NR;i++) {
-		r = (fld->r[i+istart]) * sqrt( 1 + (Params->rs)*(Params->hor[i+istart])
-											*(Params->rs)*(Params->hor[i+istart]));
+		r = (fld[0].r[i+istart]) * sqrt( 1 + (Params->rs)*(bfld[0].hor[i+istart])
+											*(Params->rs)*(bfld[0].hor[i+istart]));
 											
 		
 		CentralStar->gr[i] = -(CentralStar->x)/(r*r*r) 

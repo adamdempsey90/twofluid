@@ -20,18 +20,18 @@ void init_cstar(Mode *fld) {
 	cstar->oms = pow(cstar->r,-1.5) * sqrt(1 + cstar->ms);;
 	
 	grfac = -(cstar->ms)/(2*(cstar->r)*(cstar->r));
-	gpfac = (I*(fld->m)*(cstar->ms)/(2*(cstar->r)));
+	gpfac = (I*(fld[0].m)*(cstar->ms)/(2*(cstar->r)));
 
 	for(i=0;i<NR;i++) {
-		r = fld->r[i+istart];
-		cstar->gr[i] = dlaplace(.5,fld->m,r/(cstar->r));
-		cstar->gp[i]  = laplace(.5,fld->m,r/(cstar->r));
+		r = fld[0].r[i+istart];
+		cstar->gr[i] = dlaplace(.5,fld[0].m,r/(cstar->r));
+		cstar->gp[i]  = laplace(.5,fld[0].m,r/(cstar->r));
 	
 		cstar->gr[i] *= grfac;
 		cstar->gp[i] *= gpfac/r;
 	}
 
-	output_companion(fld->lr,fld->r);
+	output_companion(fld[0].lr,fld[0].r);
 	return;
 }
 
@@ -41,7 +41,7 @@ double laplace(double a, double m, double r) {
 */
 
 	double p,h,y;
-	double k1,k2,k3,k4;
+	double k1,k2,k3;
 	p = 0;
 	h = M_PI / nsteps;
 	
@@ -51,10 +51,9 @@ double laplace(double a, double m, double r) {
 	
 		k1 = bfunc(p, a, m, r);
 		k2 = bfunc(p+.5*h, a, m, r);
-		k3 = bfunc(p+.5*h, a, m, r);
-		k4 = bfunc(p + h, a, m, r);
+		k3 = bfunc(p + h, a, m, r);
 		
-		y += (h/6)*(k1+2*k2+2*k3+k4);
+		y += (h/6)*(k1+4*k2+k3);
 		p += h;
 	}
 	
@@ -70,7 +69,7 @@ double dlaplace(double a, double m, double r) {
 */
 
 	double p,h,y;
-	double k1,k2,k3,k4;
+	double k1,k2,k3;
 	p = 0;
 	h = M_PI / nsteps;
 	
@@ -80,10 +79,9 @@ double dlaplace(double a, double m, double r) {
 	
 		k1 = dbfunc(p, a, m, r);
 		k2 = dbfunc(p+.5*h, a, m, r);
-		k3 = dbfunc(p+.5*h, a, m, r);
-		k4 = dbfunc(p + h, a, m, r);
+		k3 = dbfunc(p + h, a, m, r);
 		
-		y += (h/6)*(k1+2*k2+2*k3+k4);
+		y += (h/6)*(k1+4*k2+k3);
 		p += h;
 	}
 	

@@ -149,6 +149,11 @@ void algo(double t, double complex *y, double complex *f, Mode *fld);
 
 #endif
 
+#ifdef TRANSPORT
+void transport_step(double dt, Mode *fld);
+#endif
+
+
 #ifdef SPLIT
 void rktvd_step( double h, double t,Mode *fld);
 void init_rktvd(void);

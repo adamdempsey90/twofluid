@@ -141,10 +141,6 @@ int main(int argc, char *argv[]) {
 	free_rktvd();
 #endif
 
-#ifdef SELFGRAV
-	free_poisson();
-#endif
-
    	free_fld(fld);
     toc = clock(); 
     print_time( (double)(toc - tic) / CLOCKS_PER_SEC );

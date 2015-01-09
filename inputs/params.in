@@ -3,18 +3,18 @@
 Nr = 512
 m = 1.0
 rmin = -1.0
-rmax = 2.0
+rmax = 1.0
 cfl = 5
 h0 = .05
 flare index = 0
-alpha shear = .01
-alpha bulk = -.006
+alpha shear = .03
+alpha bulk = -.02
 sigma0 = .001
 sigma index = -1.5
 rot index =  -1.5
 self grav soft = .1
 # Dust Parameters #
-Dust-to-Gas ratio = 
+Dust-to-Gas ratio = .01
 # Initial Eccentricity  #
 initial e = 0.05
 initial a.o.p = 0
@@ -26,7 +26,7 @@ initial phi = 0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 20000
-numf = 400
+endt = 200
+numf = 200
 tol = 1e-8
 outputdir = outputs/

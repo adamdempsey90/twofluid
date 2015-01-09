@@ -12,7 +12,7 @@ void write_header(FILE *f);
 int rhsnum;
 
 void output(Mode *fld) {
-	int i;
+	int i,n;
 	FILE *f;
 	char fname[STRLEN],name[STRLEN];
 	
@@ -44,24 +44,23 @@ void output(Mode *fld) {
 
 #else
 	f = fopen(fname,"w");
-	if (f == NULL) printf("ERROR: Couldn't open output file\n");
-	fprintf(f,"#logr\tr\tRe(u)\tIm(u)\tRe(v)\tIm(v)\tRe(s)\tIm(s)\tvybar\tomk\tsigbar\n");
+	if (f == NULL) printf("ERROR: Couldn't open output file %d\n", outnum);
+	fprintf(f,"#logr\tr\t");
+	for(n=0;n<NFLUID;n++) {
+		fprintf(f,"fld%d\t Re(u)\tIm(u)\tRe(v)\tIm(v)\tRe(s)\tIm(s)\tvybar\tomk\tsigbar\t",n);
+		
+	}
+	fprintf(f,"\n");	
 	for(i=0;i<NTOT;i++) {
-//		MPI_Printf("writing #%d\n",i);
-//		MPI_Printf("%lg\n", fld->r[i]);
-// 		MPI_Printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-// 			fld->r[i],
-// 			creal(fld->u[i]),cimag(fld->u[i]),
-// 			creal(fld->v[i]),cimag(fld->v[i]),
-// 			creal(fld->sig[i]),cimag(fld->sig[i]),
-// 			bfld->v[i],bfld->omk[i],bfld->sig[i]);
-			
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-			fld->lr[i],fld->r[i],
-			creal(fld->u[i]),cimag(fld->u[i]),
-			creal(fld->v[i]),cimag(fld->v[i]),
-			creal(fld->sig[i]),cimag(fld->sig[i]),
-			bfld->v[i],bfld->omk[i],bfld->sig[i]);
+		fprintf(f,"%lg\t%lg\t",fld[0].lr[i], fld[0].r[i]);
+		for(n=0;n<NFLUID;n++) {	
+			fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t",
+				creal(fld[n].u[i]),cimag(fld[n].u[i]),
+				creal(fld[n].v[i]),cimag(fld[n].v[i]),
+				creal(fld[n].sig[i]),cimag(fld[n].sig[i]),
+				bfld[n].v[i],bfld[n].omk[i],bfld[n].sig[i]);
+		}
+		fprintf(f,"\n");
 	}
 
 #endif
@@ -152,20 +151,27 @@ void output_params(void) {
 
 }
 void output_disk(double *lr,double *r) {
-	int i;
+	int i,n;
 	char fname[STRLEN];
 	strcpy(fname,Params->outdir);
 	strcat(fname,"disk.dat");
 	FILE *f = fopen(fname,"w");
-	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu_s \t nu_b \t Q\n");
+	fprintf(f,"#logr\tr\t");
+	for(n=0;n<NFLUID;n++) {
+		fprintf(f,"fld%d\th/r\tc^2\tnu_s\tnu_b\tQ\t",n);
+	}
+	fprintf(f,"\n");
 	for(i=0;i<NTOT;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-		lr[i],r[i],
-		Params->hor[i],
-		Params->c2[i],
-		Params->nus[i],
-		Params->nub[i],
-		(Params->hor[i])/(M_PI*(bfld->sig[i])*r[i]*r[i]));
+		fprintf(f,"%lg\t%lg\t",lr[i],r[i]);
+		for(n=0;n<NFLUID;n++) {
+			fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t",
+					bfld[n].hor[i],
+					bfld[n].c2[i],
+					bfld[n].nus[i],
+					bfld[n].nub[i],
+					(bfld[n].hor[i])/(M_PI*(bfld[n].sig[i])*r[i]*r[i]));
+		}
+		fprintf(f,"\n");
 	}
 	
 	fclose(f);
@@ -174,26 +180,26 @@ void output_disk(double *lr,double *r) {
 }
 
 void output_rhs(Mode *fld) {
-	int i;
-	FILE *f;
-	char fname[STRLEN],name[STRLEN];
-	
-	
-	strcpy(fname,Params->outdir); 
-
-	sprintf(name,"rhs_%d.dat",rhsnum);
-
-	strcat(fname,name); 
-	f = fopen(fname,"w");
-	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-		fld->lr[i+istart],fld->r[i+istart],
-		creal(fld->dtu[i]),cimag(fld->dtu[i]),
-		creal(fld->dtv[i]),cimag(fld->dtv[i]),
-		creal(fld->dts[i]),cimag(fld->dts[i]));
-	}
-	rhsnum++;
-	fclose(f);
+// 	int i;
+// 	FILE *f;
+// 	char fname[STRLEN],name[STRLEN];
+// 	
+// 	
+// 	strcpy(fname,Params->outdir); 
+// 
+// 	sprintf(name,"rhs_%d.dat",rhsnum);
+// 
+// 	strcat(fname,name); 
+// 	f = fopen(fname,"w");
+// 	for(i=0;i<NR;i++) {
+// 		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 		fld->lr[i+istart],fld->r[i+istart],
+// 		creal(fld->dtu[i]),cimag(fld->dtu[i]),
+// 		creal(fld->dtv[i]),cimag(fld->dtv[i]),
+// 		creal(fld->dts[i]),cimag(fld->dts[i]));
+// 	}
+// 	rhsnum++;
+// 	fclose(f);
 	return;
 
 }
