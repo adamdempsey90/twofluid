@@ -26,7 +26,7 @@ initial phi = 0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 200
-numf = 200
+endt = 100
+numf = 100
 tol = 1e-8
 outputdir = outputs/

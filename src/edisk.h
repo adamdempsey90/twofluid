@@ -121,7 +121,6 @@ void free_fld(Mode *fld);
 void output_disk(double *lr, double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
-void wavekillbc(Mode *fld, double dt);
 int restart(Mode *fld);
 
 void matmat(double complex *A, double complex *B, double complex *C, 
@@ -132,6 +131,10 @@ void matvec(double complex *A, double complex *B, double complex *C,
 void matsolve(double complex *A, double complex *B);
 
 double bessk0(double x);
+
+#if defined(WAVEKILLBC) || defined(KILLIN) || defined(KILLOUT)
+void wavekillbc(Mode *fld,double dt);
+#endif
 
 #if defined(IMPLICIT) || defined(SPLIT)
 

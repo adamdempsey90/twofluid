@@ -25,11 +25,13 @@ void set_bc(Mode *fld) {
 #else
 
 		
-		fld[n].u[i] = -abs(creal(fld[n].u[istart]))-I*abs(cimag(fld[n].u[istart]));
+//		fld[n].u[i] = -abs(creal(fld[n].u[istart]))-I*abs(cimag(fld[n].u[istart]));
+		fld[n].u[i] = -abs(fld[n].u[istart]);
 		fld[n].v[i] = fld[n].v[istart];
 		fld[n].sig[i] = fld[n].sig[istart];
 //		fld[n].sig[i] = 0;
-		fld[n].u[i+iend] = abs(creal(fld[n].u[iend-1]))+I*abs(cimag(fld[n].u[iend-1]));
+//		fld[n].u[i+iend] = abs(creal(fld[n].u[iend-1]))+I*abs(cimag(fld[n].u[iend-1]));
+		fld[n].u[i+iend] = abs(fld[n].u[iend-1]);
 		fld[n].v[i+iend] = fld[n].v[iend-1];
 //		fld[n].sig[i+iend] = 0;
 		fld[n].sig[i+iend] = fld[n].sig[iend-1];

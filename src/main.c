@@ -32,15 +32,13 @@ int main(int argc, char *argv[]) {
 	read_inputs(inputdir);
 	init_output(Params->outdir);
 	alloc_fld(fld);
-	
+	printf("allocated\n");
 	int restart_status = init_fld(fld);
 	if (restart_status == -1) {
 		printf("Exiting...\n");
 		Params->endt = -1;
 	}
 	
-	
-
 
 #if defined(IMPLICIT) || defined(SPLIT)
 	cn_solver_init();

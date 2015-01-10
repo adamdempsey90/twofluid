@@ -58,7 +58,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 
 		for(ir=0;ir<NEQNS;ir++) {
 			for(ic=0;ic<NEQNS;ic++) UK[ir][ic] = -U[ir][ic];
-			UK[ir][3] = K[ir];
+			UK[ir][NEQNS] = K[ir];
 		}
 			
 		
@@ -71,7 +71,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 		
 		for(ir=0;ir<NEQNS;ir++) {
 			for(ic=0;ic<NEQNS;ic++) cn_mats[i].H[ir][ic] = UK[ir][ic];
-			cn_mats[i].G[ir] = UK[ir][3];
+			cn_mats[i].G[ir] = UK[ir][NEQNS];
 		}
 
 		
@@ -350,13 +350,13 @@ void get_matrices(int indx, double dt, Mode *fld)
 /* Gas-Dust */
 	
 /* Main Diagonal  */	
-	Agd[0][0] = dtg*invtstop;
+	Agd[0][0] = 0; //dtg*invtstop;
 	Agd[0][1] = 0;
 	Agd[0][2] = 0;
 	
 	Agd[1][0] = 0;
-	Agd[1][1] = dtg*invtstop;
-	Agd[1][2] = dtg*invtstop*(bfld[1].v[indx] - bfld[0].v[indx]);
+	Agd[1][1] = 0; //dtg*invtstop;
+	Agd[1][2] = 0; //dtg*invtstop*r*(domk - omk);
 	
 	Agd[2][0] = 0;
 	Agd[2][1] = 0;
@@ -391,13 +391,13 @@ void get_matrices(int indx, double dt, Mode *fld)
 /* Dust-gas */
 	
 /* Main Diagonal  */	
-	Adg[0][0] = invtstop;
+	Adg[0][0] = 0; //invtstop;
 	Adg[0][1] = 0;
 	Adg[0][2] = 0;
 	
 	Adg[1][0] = 0;
-	Adg[1][1] = invtstop;
-	Adg[1][2] = (dnu/dtg)*(Params->indsig)*(Params->indsig)/r2;
+	Adg[1][1] = 0; //invtstop;
+	Adg[1][2] = 0; //(dnu/dtg)*(Params->indsig)*(Params->indsig)/r2;
 	
 	Adg[2][0] = 0;
 	Adg[2][1] = 0;
@@ -414,7 +414,7 @@ void get_matrices(int indx, double dt, Mode *fld)
 	
 	Bdg[2][0]=  0;
 	Bdg[2][1] = 0;
-	Bdg[2][2] = 2*dnu*(Params->indsig)/(dtg*r);
+	Bdg[2][2] = 0; //2*dnu*(Params->indsig)/(dtg*r);
 	
 /* D2 Matrix */
 	Cdg[0][0] = 0;
@@ -427,9 +427,9 @@ void get_matrices(int indx, double dt, Mode *fld)
 	
 	Cdg[2][0]=  0;
 	Cdg[2][1] = 0;
-	Cdg[2][2] = (dnu/dtg);
+	Cdg[2][2] = 0; //(dnu/dtg);
 
-#ifdef TRANSPORT
+#ifndef TRANSPORT
 	A[0][0] += I*m*omk;
 	A[1][1] += I*m*omk;
 	A[2][2] += I*m*omk;
@@ -550,40 +550,6 @@ void get_matrices(int indx, double dt, Mode *fld)
 	K[5] += dt*Fd[2] + dsc;
 #endif	
 	
-// 	for(i=0;i<3;i++) {
-// 		for(j=0;j<3;j++) {
-// 			
-// 			M[i][j] =  (A[i][j] - 2*C[i][j]/dr2);
-// 			U[i][j]= (C[i][j]/dr2 + .5*(B[i][j]-C[i][j])/(r*dr));
-// 			L[i][j] = (C[i][j]/dr2 - .5*(B[i][j]-C[i][j])/(r*dr));
-// #ifndef INFINITE
-// 			M[i][j] *= .5*dt;
-// 			U[i][j] *= .5*dt;
-// 			L[i][j] *= .5*dt;
-// #endif
-// 		}
-// 	}
-// #ifdef INFINITE
-// 	K[0] = F[0];
-// 	K[1] = F[1];
-// 	K[2] = F[2];
-// #else
-// 	K[0] =    M[0][0]*uc + M[0][1]*vc + M[0][2]*sc
-// 			+ U[0][0]*ur + U[0][1]*vr + U[0][2]*sr
-// 			+ L[0][0]*ul + L[0][1]*vl + L[0][2]*sl
-// 			+ dt*F[0] + uc;
-// 
-// 	K[1] =    M[1][0]*uc + M[1][1]*vc + M[1][2]*sc
-// 			+ U[1][0]*ur + U[1][1]*vr + U[1][2]*sr
-// 			+ L[1][0]*ul + L[1][1]*vl + L[1][2]*sl
-// 			+ dt*F[1] + vc;
-// 	
-// 	K[2] =    M[2][0]*uc + M[2][1]*vc + M[2][2]*sc
-// 			+ U[2][0]*ur + U[2][1]*vr + U[2][2]*sr
-// 			+ L[2][0]*ul + L[2][1]*vl + L[2][2]*sl
-// 			+ dt*F[2] + sc;
-// #endif	
-
 	for(i=0;i<NEQNS;i++) {
 		for(j=0;j<NEQNS;j++) {
 			M[i][j] *= -1;

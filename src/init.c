@@ -11,13 +11,14 @@ int init_fld(Mode *fld) {
 
 	istart = NG;
 	iend = NR+NG;
-	
 	fld[0].m = Params->m;
 	fld[1].m = Params->m;
+	
 // #ifdef OPENMP
 //         #pragma omp parallel private(i,r,lr) shared(fld)
 //         #pragma omp for schedule(static)
 // #endif
+
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
 		fld[0].lr[i] = lr;
@@ -27,31 +28,31 @@ int init_fld(Mode *fld) {
 		r = exp(lr);
 #endif
 		fld[0].r[i] = r;
-
-
+		
 		bfld[0].hor[i] = (Params->h)*pow(r,Params->indfl);
-
 		
 		bfld[0].sig[i] = (Params->sig0)*pow(r,Params->indsig);
 		
-		bfld[1].omk[i] = (Params->om0)*pow(r,Params->q);
-		bfld[1].dlomk[i] = (Params->q);
+		bfld[1].sig[i] = (bfld[0].sig[i])*(Params->dust_to_gas);
 		
+		bfld[1].omk[i] = (Params->om0)*pow(r,Params->q);
+		
+		bfld[1].dlomk[i] = (Params->q);
 		
 		bfld[0].c2[i] = (bfld[0].hor[i])*
 							(bfld[0].hor[i])*r*r*(bfld[1].omk[i])*(bfld[1].omk[i]);
 		
 		bfld[0].nus[i] = (Params->alpha_s)*(bfld[0].hor[i])*(bfld[0].hor[i])
 							*(bfld[1].omk[i])*r*r;
+		
 		bfld[0].nub[i] = (Params->alpha_b)*(bfld[0].hor[i])*(bfld[0].hor[i])
 							*(bfld[1].omk[i])*r*r;
 		
 		bfld[0].omk[i] = (bfld[1].omk[i])
 							*sqrt( 1 + (bfld[0].hor[i])*(bfld[0].hor[i])*(Params->indsig));
 		
- 		bfld[0].dlomk[i] = bfld[1].dlomk[1] + 
+ 		bfld[0].dlomk[i] = bfld[1].dlomk[i] + 
  				(1-pow(bfld[1].omk[i]/bfld[0].omk[i],2))*(Params->indfl);
-		
 		
 		set_dust_params(i);
 		
@@ -130,8 +131,8 @@ void user_ic(Mode *fld) {
 //		E0 = 0;
 
 //		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
-		fld[0].u[i] = I*(bfld[0].v[i])*E0;
-		fld[0].v[i] = .5*(bfld[0].v[i])*E0;	
+		fld[1].u[i] = I*(bfld[0].v[i])*E0;
+		fld[1].v[i] = .5*(bfld[0].v[i])*E0;	
 //		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
 //					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
 //		fld->sig[i] = .001*sin(M_PI * ( r - ri)/(ro-ri));
@@ -184,13 +185,12 @@ void set_dust_params(int i) {
 	double a = Params->dalpha;
 
 	double tstop = .013*(Params->dust_to_gas)/eta;
-	
+
 	bfld[1].nus[i] = a * (1 + tstop + 4*tstop*tstop) * pow(1 + tstop*tstop,-2);
 	bfld[1].c2[i] = a*c2*(1+2*tstop + 1.25*tstop*tstop) * pow(1 + tstop*tstop,-2);
 
 	bfld[1].hor[i] = hor * sqrt( a / tstop);
 	
 	bfld[1].nub[i] = tstop / bfld[1].omk[i];
-
 	return;
 }

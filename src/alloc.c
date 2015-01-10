@@ -78,7 +78,7 @@ void alloc_fld(Mode *fld) {
 	
 		bfld[i].dlomk = (double *)malloc(sizeof(double)*NTOT);
 		MCHECK(bfld[i].dlomk,"dlomk");
-	}	
+		
 		bfld[i].hor = (double *)malloc(sizeof(double)*NTOT);
 		MCHECK(bfld[i].hor,"H/R");
 		
@@ -90,6 +90,8 @@ void alloc_fld(Mode *fld) {
 
 		bfld[i].c2 = (double *)malloc(sizeof(double)*NTOT);
 		MCHECK(bfld[i].c2, "c2");
+	}	
+		
 	
 	
 	
